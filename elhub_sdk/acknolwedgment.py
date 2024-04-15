@@ -13,9 +13,11 @@ acknowlegment was sucessfull poll again and check if the
 request have been acknowledged.
 
 """
+
 import logging
 import uuid
 from datetime import datetime
+from typing import Optional, Literal
 
 import zeep
 from zeep.plugins import HistoryPlugin
@@ -38,6 +40,7 @@ def acknowledge_poll(
     history: HistoryPlugin,
     sender_gsn: str,
     original_business_document_reference: str,
+    status_type: Optional[Literal[39, 41]],
     process_role: ROLES = ROLES.THIRD_PARTY,
 ) -> bool:
     """
@@ -55,6 +58,7 @@ def acknowledge_poll(
     """
 
     factory = client.type_factory('ns4')
+    status = STATUS_TYPE.ACCEPTED.value if status_type is None else status_type
     eh_request = factory.Acknowledgement(
         Header={
             'Identification': uuid.uuid4(),
@@ -92,7 +96,7 @@ def acknowledge_poll(
         },
         PayloadResponseEvent={
             'StatusType': {
-                '_value_1': STATUS_TYPE.ACCEPTED.value,
+                '_value_1': status,
                 'listAgencyIdentifier': LIST_AGENCY_IDENTIFIER.UN_CEFACT.value,
             },
             'OriginalBusinessDocumentReference': original_business_document_reference,
